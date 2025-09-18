@@ -17,47 +17,7 @@
 </head>
 <body class="bg-light">
   <!-- Header -->
-  <nav class="navbar navbar-expand-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-    <div class="container">
-      <a class="navbar-brand" href="<?= site_url('dashboard'); ?>">
-        <i class="fas fa-coffee mr-2"></i>Warkop Abah
-      </a>
-      
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ml-auto">
-          <li class="nav-item">
-            <a class="nav-link active" href="<?= site_url('dashboard'); ?>">
-              <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="<?= site_url('menu'); ?>">
-              <i class="fas fa-utensils mr-1"></i>Menu
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="<?= site_url('dashboard/riwayat'); ?>">
-              <i class="fas fa-history mr-1"></i>Riwayat
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="<?= site_url('dashboard/profil'); ?>">
-              <i class="fas fa-user mr-1"></i>Profil
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="<?= site_url('keluar'); ?>">
-              <i class="fas fa-sign-out-alt mr-1"></i>Keluar
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <?php $active = 'dashboard'; $this->load->view('partials/navbar', compact('active')); ?>
 
   <!-- Main Content -->
   <div class="main-content">

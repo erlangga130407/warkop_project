@@ -290,3 +290,4 @@ if (!function_exists('calculate_estimated_time')) {
         return $remaining_minutes . ' menit lagi';
     }
 }
+

@@ -62,7 +62,7 @@ class Login extends CI_Controller
                 $otp_id = $this->user->createOtp([
                     'user_id'    => (int)$u['id'],
                     'code_hash'  => $hash,
-                    'expires_at' => date('Y-m-d H:i:s', time() + 300), // 5 menit
+                    'expires_at' => date('Y-m-d H:i:s', time() + 180), // 5 menit
                     'ip'         => $this->input->ip_address(),
                     'user_agent' => substr($this->input->user_agent(), 0, 255),
                 ]);
@@ -111,10 +111,87 @@ class Login extends CI_Controller
 
     private function _send_otp_email($to, $name, $code)
     {
-        $this->email->from('no-reply@warkopabah.local', 'Warkop Abah');
+        // Load email config
+        $this->load->config('email');
+        $email_config = $this->config->item('email');
+        
+        // Fallback jika konfigurasi tidak ditemukan
+        if (!$email_config) {
+            $email_config = [
+                'protocol' => 'mail',
+                'mailtype' => 'html',
+                'charset' => 'utf-8',
+                'newline' => "\r\n",
+                'crlf' => "\r\n"
+            ];
+        }
+        
+        $this->email->initialize($email_config);
+        
+        // Prepare HTML email content
+        $email_content = '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Kode OTP Login - Warkop Abah</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+                .email-container { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 30px; max-width: 500px; margin: 0 auto; }
+                .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+                .logo { font-size: 28px; font-weight: bold; color: #333; margin-bottom: 10px; }
+                .subtitle { font-size: 14px; color: #666; }
+                .otp-code { background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; }
+                .otp-number { font-size: 32px; font-weight: bold; color: #2c5aa0; letter-spacing: 5px; }
+                .warning { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 15px; margin: 20px 0; color: #856404; }
+                .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+            </style>
+        </head>
+        <body>
+            <div class="email-container">
+                <div class="header">
+                    <div class="logo">WARKOP ABAH</div>
+                    <div class="subtitle">Jl. Contoh No. 123, Jakarta | Telp: +62 812-3456-7890</div>
+                </div>
+                
+                <h2>Halo ' . htmlspecialchars($name) . '!</h2>
+                <p>Anda telah melakukan login ke akun Warkop Abah. Gunakan kode OTP berikut untuk melanjutkan:</p>
+                
+                <div class="otp-code">
+                    <div style="font-size: 16px; color: #666; margin-bottom: 10px;">Kode OTP Anda:</div>
+                    <div class="otp-number">' . $code . '</div>
+                </div>
+                
+                <div class="warning">
+                    <strong>⚠️ Penting:</strong><br>
+                    • Kode OTP berlaku selama <strong>3 menit</strong><br>
+                    • Jangan bagikan kode ini kepada siapapun<br>
+                    • Jika bukan Anda yang melakukan login, abaikan email ini
+                </div>
+                
+                <p>Jika Anda tidak melakukan login ini, silakan abaikan email ini atau hubungi admin.</p>
+                
+                <div class="footer">
+                    <p>Terima kasih telah menggunakan layanan Warkop Abah! ☕</p>
+                    <p>Email ini dikirim secara otomatis, mohon tidak membalas.</p>
+                </div>
+            </div>
+        </body>
+        </html>';
+
+        $from_email = $this->config->item('from_email') ?: 'noreply@warkopabah.local';
+        $from_name = $this->config->item('from_name') ?: 'Warkop Abah';
+        
+        $this->email->from($from_email, $from_name);
         $this->email->to($to);
-        $this->email->subject('Kode OTP Login');
-        $this->email->message("Halo $name,\n\nKode OTP Anda: $code\nBerlaku 5 menit.\n\nJika bukan Anda, abaikan email ini.");
-        $this->email->send();
+        $this->email->subject('Kode OTP Login - Warkop Abah');
+        $this->email->message($email_content);
+        
+        if ($this->email->send()) {
+            return true;
+        } else {
+            log_message('error', 'Failed to send OTP email: ' . $this->email->print_debugger());
+            return false;
+        }
     }
 }

@@ -190,35 +190,58 @@ class Menu extends CI_Controller
                 $user = $this->session->userdata('user');
                 $total = array_sum(array_column($cart, 'subtotal'));
 
-                // Create order
+                // Check stock availability before creating order
+                $stock_available = true;
+                $stock_errors = [];
+                
+                foreach ($cart as $item) {
+                    $menu = $this->Menu_model->getMenuById($item['menu_id']);
+                    if (!$menu || $menu['stock'] < $item['quantity']) {
+                        $stock_available = false;
+                        $stock_errors[] = $menu['name'] . ' - Stok tidak mencukupi (Tersedia: ' . ($menu['stock'] ?? 0) . ', Dibutuhkan: ' . $item['quantity'] . ')';
+                    }
+                }
+
+                if (!$stock_available) {
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger">Pesanan gagal dibuat:<br>' . implode('<br>', $stock_errors) . '</div>');
+                    redirect('menu/cart');
+                }
+
+                // Create order data
                 $order_data = [
                     'user_id' => $user['id'],
                     'order_number' => $this->Order_model->generateOrderNumber(),
                     'total_amount' => $total,
                     'payment_method' => $this->input->post('payment_method'),
                     'notes' => $this->input->post('notes'),
-                    'status' => 'pending'
+                    'status' => 'pending',
+                    'created_at' => date('Y-m-d H:i:s')
                 ];
 
-                $order_id = $this->Order_model->createOrder($order_data);
-
-                // Create order items
+                // Prepare order items data
+                $items_data = [];
                 foreach ($cart as $item) {
-                    $order_item_data = [
-                        'order_id' => $order_id,
+                    $items_data[] = [
                         'menu_id' => $item['menu_id'],
                         'quantity' => $item['quantity'],
                         'price' => $item['price'],
                         'subtotal' => $item['subtotal']
                     ];
-                    $this->Order_model->createOrderItem($order_item_data);
                 }
 
-                // Clear cart
-                $this->session->unset_userdata('cart');
+                // Create order with items and reduce stock
+                $order_id = $this->Order_model->createOrderWithItems($order_data, $items_data);
 
-                $this->session->set_flashdata('message', '<div class="alert alert-success">Pesanan berhasil dibuat! Nomor pesanan: ' . $order_data['order_number'] . '</div>');
-                redirect('dashboard/riwayat');
+                if ($order_id) {
+                    // Clear cart
+                    $this->session->unset_userdata('cart');
+
+                    $this->session->set_flashdata('message', '<div class="alert alert-success">Pesanan berhasil dibuat! Nomor pesanan: ' . $order_data['order_number'] . '</div>');
+                    redirect('dashboard/riwayat');
+                } else {
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger">Gagal membuat pesanan. Silakan coba lagi.</div>');
+                    redirect('menu/cart');
+                }
             }
         }
 

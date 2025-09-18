@@ -7,13 +7,65 @@ class Order_model extends CI_Model
 
     public function createOrder($data)
     {
+        $this->db->trans_start();
+        
+        // Insert order
         $this->db->insert($this->table_orders, $data);
-        return $this->db->insert_id();
+        $order_id = $this->db->insert_id();
+        
+        $this->db->trans_complete();
+        
+        return $order_id;
     }
 
     public function createOrderItem($data)
     {
         return $this->db->insert($this->table_order_items, $data);
+    }
+
+    public function createOrderWithItems($order_data, $items_data)
+    {
+        $this->db->trans_start();
+        
+        try {
+            // Insert order
+            $this->db->insert($this->table_orders, $order_data);
+            $order_id = $this->db->insert_id();
+            
+            if (!$order_id) {
+                throw new Exception('Failed to create order');
+            }
+            
+            // Insert order items and reduce stock
+            foreach ($items_data as $item) {
+                // Insert order item
+                $item['order_id'] = $order_id;
+                $this->db->insert($this->table_order_items, $item);
+                
+                // Reduce stock
+                $this->db->set('stock', 'stock - ' . (int)$item['quantity'], FALSE);
+                $this->db->set('updated_at', date('Y-m-d H:i:s'));
+                $this->db->where('id', $item['menu_id']);
+                $this->db->update('menus');
+                
+                // Update availability if stock becomes 0
+                $this->db->set('is_available', 'CASE WHEN stock <= 0 THEN 0 ELSE 1 END', FALSE);
+                $this->db->where('id', $item['menu_id']);
+                $this->db->update('menus');
+            }
+            
+            $this->db->trans_complete();
+            
+            if ($this->db->trans_status() === FALSE) {
+                return false;
+            }
+            
+            return $order_id;
+            
+        } catch (Exception $e) {
+            $this->db->trans_rollback();
+            return false;
+        }
     }
 
     public function getOrdersByUser($user_id, $limit = null, $offset = 0)
@@ -178,6 +230,18 @@ class Order_model extends CI_Model
                  ->join('user u', 'u.id = o.user_id', 'left')
                  ->join($this->table_order_items . ' oi', 'oi.order_id = o.id', 'left')
                  ->where('o.status', $status)
+                 ->group_by('o.id')
+                 ->order_by('o.created_at', 'DESC');
+        
+        return $this->db->get()->result_array();
+    }
+
+    public function getOrdersByUserId($user_id)
+    {
+        $this->db->select('o.*, COUNT(oi.id) as total_items')
+                 ->from($this->table_orders . ' o')
+                 ->join($this->table_order_items . ' oi', 'oi.order_id = o.id', 'left')
+                 ->where('o.user_id', $user_id)
                  ->group_by('o.id')
                  ->order_by('o.created_at', 'DESC');
         

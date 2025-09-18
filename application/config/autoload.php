@@ -7,7 +7,7 @@ $autoload['libraries'] = ['database', 'session',"email"];
 
 $autoload['drivers'] = array();
 
-$autoload['helper']    = ['url', 'form', "captcha"];
+$autoload['helper']    = ['url', 'form', "captcha", "datetime"];
 
 $autoload['config'] = array();
 

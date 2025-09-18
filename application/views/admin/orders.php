@@ -72,8 +72,8 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="<?= site_url('logout') ?>">
-                    <i class="fas fa-fw fa-utensils"></i>
+                <a class="nav-link" href="<?= site_url('login/logout') ?>">
+                    <i class="fas fa-fw fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
             </li>
@@ -144,22 +144,22 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">All Orders</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Semua Pesanan</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-bordered" width="100%" cellspacing="0">
                                             <thead>
                                                 <tr>
-                                                    <th>Order #</th>
-                                                    <th>Customer</th>
+                                                    <th>No. Pesanan</th>
+                                                    <th>Pelanggan</th>
                                                     <th>Email</th>
-                                                    <th>Items</th>
-                                                    <th>Amount</th>
+                                                    <th>Item</th>
+                                                    <th>Jumlah</th>
                                                     <th>Status</th>
-                                                    <th>Payment</th>
-                                                    <th>Date</th>
-                                                    <th>Actions</th>
+                                                    <th>Pembayaran</th>
+                                                    <th>Tanggal</th>
+                                                    <th>Aksi</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -175,10 +175,10 @@
                                                                 <select class="form-control form-control-sm status-select" 
                                                                         data-order-id="<?= $order['id'] ?>" 
                                                                         onchange="updateOrderStatus(<?= $order['id'] ?>, this.value)">
-                                                                    <option value="pending" <?= $order['status'] == 'pending' ? 'selected' : '' ?>>Pending</option>
-                                                                    <option value="processing" <?= $order['status'] == 'processing' ? 'selected' : '' ?>>Processing</option>
-                                                                    <option value="completed" <?= $order['status'] == 'completed' ? 'selected' : '' ?>>Completed</option>
-                                                                    <option value="cancelled" <?= $order['status'] == 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                                                                    <option value="pending" <?= $order['status'] == 'pending' ? 'selected' : '' ?>>Menunggu</option>
+                                                                    <option value="processing" <?= $order['status'] == 'processing' ? 'selected' : '' ?>>Diproses</option>
+                                                                    <option value="completed" <?= $order['status'] == 'completed' ? 'selected' : '' ?>>Selesai</option>
+                                                                    <option value="cancelled" <?= $order['status'] == 'cancelled' ? 'selected' : '' ?>>Dibatalkan</option>
                                                                 </select>
                                                             </td>
                                                             <td><?= ucfirst($order['payment_method'] ?: 'Cash') ?></td>
@@ -195,7 +195,7 @@
                                                     <?php endforeach; ?>
                                                 <?php else: ?>
                                                     <tr>
-                                                        <td colspan="9" class="text-center">No orders found</td>
+                                                        <td colspan="9" class="text-center">Tidak ada pesanan</td>
                                                     </tr>
                                                 <?php endif; ?>
                                             </tbody>

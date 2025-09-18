@@ -89,6 +89,22 @@ $route['dashboard/index'] = 'dashboard';
 // Dashboard sub-pages
 $route['dashboard/riwayat'] = 'dashboard/riwayat';
 $route['dashboard/profil'] = 'dashboard/profil';
+$route['dashboard/update_profile'] = 'dashboard/update_profile';
+$route['dashboard/update_password'] = 'dashboard/update_password';
+$route['dashboard/upload_profile_image'] = 'dashboard/upload_profile_image';
+$route['dashboard/get_order_status/(:num)'] = 'dashboard/get_order_status/$1';
+$route['dashboard/order_detail/(:num)'] = 'dashboard/order_detail/$1';
+$route['dashboard/send_order_email/(:num)'] = 'dashboard/send_order_email/$1';
+
+// Test routes
+$route['test-email'] = 'test_email';
+
+// Profile routes
+$route['profile'] = 'profile';
+$route['profile/index'] = 'profile';
+$route['profile/update_profile'] = 'profile/update_profile';
+$route['profile/change_password'] = 'profile/change_password';
+$route['profile/upload_profile_image'] = 'profile/upload_profile_image';
 
 /*
 |--------------------------------------------------------------------------
@@ -104,6 +120,7 @@ $route['admin/dashboard'] = 'admin/dashboard';
 $route['admin/users'] = 'admin/users';
 $route['admin/orders'] = 'admin/orders';
 $route['admin/menus'] = 'admin/menus';
+$route['admin/profile'] = 'admin/profile';
 $route['admin/login'] = 'admin/logout';
 
 // Admin AJAX
@@ -121,6 +138,11 @@ $route['admin/add_category'] = 'admin/add_category';
 $route['admin/edit_category'] = 'admin/edit_category';
 $route['admin/update_category'] = 'admin/update_category';
 $route['admin/delete_category'] = 'admin/delete_category';
+$route['admin/update_stock'] = 'admin/update_stock';
+$route['admin/update_price'] = 'admin/update_price';
+$route['admin/update_profile'] = 'admin/update_profile';
+$route['admin/change_password'] = 'admin/change_password';
+$route['admin/upload_profile_image'] = 'admin/upload_profile_image';
 
 /*
 |--------------------------------------------------------------------------

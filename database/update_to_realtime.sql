@@ -350,3 +350,10 @@ SELECT c.name as category, m.name as menu, m.sort_order
 FROM menus m 
 JOIN menu_categories c ON m.category_id = c.id 
 ORDER BY c.sort_order, m.sort_order;
+
+
+
+
+
+
+

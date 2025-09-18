@@ -143,14 +143,28 @@
                           <td><?= $order['total_items'] ?> item</td>
                           <td>Rp <?= number_format($order['total_amount'], 0, ',', '.') ?></td>
                           <td>
-                            <span class="badge badge-<?= $order['status'] == 'completed' ? 'success' : ($order['status'] == 'pending' ? 'warning' : ($order['status'] == 'processing' ? 'info' : 'danger')) ?> status-badge">
-                              <?= ucfirst($order['status']) ?>
+                            <?php
+                            $status_config = [
+                                'pending' => ['class' => 'warning', 'text' => 'Menunggu', 'icon' => 'clock'],
+                                'processing' => ['class' => 'info', 'text' => 'Dalam Proses', 'icon' => 'cog'],
+                                'completed' => ['class' => 'success', 'text' => 'Selesai', 'icon' => 'check-circle'],
+                                'cancelled' => ['class' => 'danger', 'text' => 'Dibatalkan', 'icon' => 'times-circle']
+                            ];
+                            $status = $order['status'];
+                            $config = $status_config[$status] ?? ['class' => 'secondary', 'text' => ucfirst($status), 'icon' => 'question'];
+                            ?>
+                            <span class="badge badge-<?= $config['class'] ?> status-badge" data-order-id="<?= $order['id'] ?>">
+                              <i class="fas fa-<?= $config['icon'] ?> mr-1"></i>
+                              <?= $config['text'] ?>
                             </span>
                           </td>
                           <td>
                             <a href="<?= site_url('dashboard/order_detail/' . $order['id']); ?>" class="btn btn-sm btn-outline-info" title="Detail">
                               <i class="fas fa-eye"></i>
                             </a>
+                            <button class="btn btn-sm btn-outline-success ml-1" onclick="sendEmail(<?= $order['id'] ?>)" title="Kirim Email">
+                              <i class="fas fa-envelope"></i>
+                            </button>
                           </td>
                         </tr>
                       <?php endforeach; ?>
@@ -205,5 +219,94 @@
   <script src="<?= base_url('assets/vendor/bootstrap/js/bootstrap.bundle.min.js'); ?>"></script>
   <script src="<?= base_url('assets/vendor/jquery-easing/jquery.easing.min.js'); ?>"></script>
   <script src="<?= base_url('assets/js/sb-admin-2.min.js'); ?>"></script>
+  
+  <script>
+    // Real-time status update
+    function updateOrderStatus() {
+      $('.status-badge').each(function() {
+        const orderId = $(this).data('order-id');
+        const badge = $(this);
+        
+        $.ajax({
+          url: '<?= site_url('dashboard/get_order_status') ?>/' + orderId,
+          type: 'GET',
+          dataType: 'json',
+          success: function(response) {
+            if (response.success) {
+              const status = response.status;
+              const statusConfig = {
+                'pending': {class: 'warning', text: 'Menunggu', icon: 'clock'},
+                'processing': {class: 'info', text: 'Dalam Proses', icon: 'cog'},
+                'completed': {class: 'success', text: 'Selesai', icon: 'check-circle'},
+                'cancelled': {class: 'danger', text: 'Dibatalkan', icon: 'times-circle'}
+              };
+              
+              const config = statusConfig[status] || {class: 'secondary', text: status, icon: 'question'};
+              
+              badge.removeClass('badge-warning badge-info badge-success badge-danger badge-secondary')
+                   .addClass('badge-' + config.class)
+                   .html('<i class="fas fa-' + config.icon + ' mr-1"></i>' + config.text);
+            }
+          }
+        });
+      });
+    }
+    
+    // Update status every 30 seconds
+    setInterval(updateOrderStatus, 30000);
+    
+    // Send email function
+    function sendEmail(orderId) {
+        if (confirm('Kirim struk pesanan ke email?')) {
+            $.ajax({
+                url: '<?= site_url('dashboard/send_order_email') ?>/' + orderId,
+                type: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        alert('Struk berhasil dikirim ke email!');
+                    } else {
+                        alert('Gagal mengirim email: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Terjadi kesalahan saat mengirim email');
+                }
+            });
+        }
+    }
+    
+    // Filter functionality
+    $('.form-control').on('change', function() {
+      const status = $('select').val();
+      const startDate = $('input[type="date"]').eq(0).val();
+      const endDate = $('input[type="date"]').eq(1).val();
+      
+      // Filter rows based on criteria
+      $('tbody tr').each(function() {
+        const row = $(this);
+        const statusBadge = row.find('.status-badge');
+        const dateCell = row.find('td').eq(1).text();
+        
+        let show = true;
+        
+        if (status && !statusBadge.hasClass('badge-' + status)) {
+          show = false;
+        }
+        
+        if (startDate || endDate) {
+          const orderDate = new Date(dateCell);
+          if (startDate && orderDate < new Date(startDate)) {
+            show = false;
+          }
+          if (endDate && orderDate > new Date(endDate)) {
+            show = false;
+          }
+        }
+        
+        row.toggle(show);
+      });
+    });
+  </script>
 </body>
 </html>

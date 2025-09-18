@@ -72,8 +72,8 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="<?= site_url('logout') ?>">
-                    <i class="fas fa-fw fa-utensils"></i>
+                <a class="nav-link" href="<?= site_url('login/logout') ?>">
+                    <i class="fas fa-fw fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
             </li>
@@ -130,17 +130,11 @@
                 <div class="container-fluid">
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <div>
-                            <h1 class="h3 mb-0 text-gray-800">Kelola Pengguna</h1>
-                            <small class="text-muted current-time"></small>
-                        </div>
+                        <h1 class="h3 mb-0 text-gray-800">Kelola Pengguna</h1>
                         <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-toggle="modal" data-target="#addUserModal">
                             <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Pengguna Baru
                         </button>
                     </div>
-
-                    <!-- Alert Messages -->
-                    <div id="alert-container"></div>
 
                     <!-- Content Row -->
                     <div class="row">
@@ -182,7 +176,7 @@
                                                                     <?= $user_item['is_active'] ? 'Aktif' : 'Tidak Aktif' ?>
                                                                 </span>
                                                             </td>
-                                                            <td><?= format_datetime($user_item['created_at']) ?></td>
+                                                            <td><?= date('d/m/Y H:i', strtotime($user_item['created_at'])) ?></td>
                                                             <td>
                                                                 <button class="btn btn-sm btn-info" onclick="editUser(<?= $user_item['id'] ?>)">
                                                                     <i class="fas fa-edit"></i>
@@ -406,31 +400,8 @@
 
     <!-- Custom scripts for all pages-->
     <script src="<?= base_url('assets/js/sb-admin-2.min.js') ?>"></script>
-    
-    <!-- Realtime DateTime Script -->
-    <script src="<?= base_url('assets/js/realtime-datetime.js') ?>"></script>
 
     <script>
-        // Function to show alert messages
-        function showAlert(message, type = 'success') {
-            var alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            var icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
-            
-            var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
-                           '<i class="fas ' + icon + ' mr-2"></i>' + message +
-                           '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                           '<span aria-hidden="true">&times;</span>' +
-                           '</button>' +
-                           '</div>';
-            
-            $('#alert-container').html(alertHtml);
-            
-            // Auto hide after 5 seconds
-            setTimeout(function() {
-                $('.alert').fadeOut();
-            }, 5000);
-        }
-
         function editUser(userId) {
             $.ajax({
                 url: '<?= site_url('admin/edit_user') ?>',
@@ -454,60 +425,35 @@
                         
                         $('#editUserModal').modal('show');
                     } else {
-                        showAlert('Error: ' + response.message, 'error');
+                        alert('Error: ' + response.message);
                     }
                 },
                 error: function() {
-                    showAlert('Terjadi kesalahan saat mengambil data pengguna', 'error');
+                    alert('Terjadi kesalahan saat mengambil data pengguna');
                 }
             });
         }
 
         function deleteUser(userId) {
-            // Get user info for confirmation
-            $.ajax({
-                url: '<?= site_url('admin/edit_user') ?>',
-                type: 'POST',
-                data: { user_id: userId },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        var user = response.user;
-                        var confirmMessage = 'Yakin ingin menghapus pengguna berikut?\n\n' +
-                                           'Nama: ' + user.name + '\n' +
-                                           'Email: ' + user.email + '\n' +
-                                           'Peran: ' + (user.role_id == 1 ? 'Admin' : 'Pelanggan') + '\n\n' +
-                                           'Tindakan ini tidak dapat dibatalkan dan akan menghapus semua data terkait.';
-                        
-                        if (confirm(confirmMessage)) {
-                            $.ajax({
-                                url: '<?= site_url('admin/delete_user') ?>',
-                                type: 'POST',
-                                data: { user_id: userId },
-                                dataType: 'json',
-                                success: function(deleteResponse) {
-                                    if (deleteResponse.success) {
-                                        showAlert('Pengguna berhasil dihapus', 'success');
-                                        setTimeout(function() {
-                                            location.reload();
-                                        }, 1500);
-                                    } else {
-                                        showAlert('Error: ' + deleteResponse.message, 'error');
-                                    }
-                                },
-                                error: function() {
-                                    showAlert('Terjadi kesalahan saat menghapus pengguna', 'error');
-                                }
-                            });
+            if (confirm('Yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.')) {
+                $.ajax({
+                    url: '<?= site_url('admin/delete_user') ?>',
+                    type: 'POST',
+                    data: { user_id: userId },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Pengguna berhasil dihapus');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
                         }
-                    } else {
-                        showAlert('Error: ' + response.message, 'error');
+                    },
+                    error: function() {
+                        alert('Terjadi kesalahan saat menghapus pengguna');
                     }
-                },
-                error: function() {
-                    showAlert('Terjadi kesalahan saat mengambil data pengguna', 'error');
-                }
-            });
+                });
+            }
         }
 
         function toggleUserStatus(userId) {
@@ -518,16 +464,14 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        showAlert(response.message, 'success');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
+                        alert(response.message);
+                        location.reload();
                     } else {
-                        showAlert('Error: ' + response.message, 'error');
+                        alert('Error: ' + response.message);
                     }
                 },
                 error: function() {
-                    showAlert('Terjadi kesalahan saat mengubah status pengguna', 'error');
+                    alert('Terjadi kesalahan saat mengubah status pengguna');
                 }
             });
         }
@@ -542,18 +486,16 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        showAlert('Pengguna berhasil ditambahkan', 'success');
+                        alert('Pengguna berhasil ditambahkan');
                         $('#addUserModal').modal('hide');
                         $('#addUserForm')[0].reset();
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
+                        location.reload();
                     } else {
-                        showAlert('Error: ' + response.message, 'error');
+                        alert('Error: ' + response.message);
                     }
                 },
                 error: function() {
-                    showAlert('Terjadi kesalahan saat menambahkan pengguna', 'error');
+                    alert('Terjadi kesalahan saat menambahkan pengguna');
                 }
             });
         });
@@ -568,17 +510,15 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        showAlert('Pengguna berhasil diperbarui', 'success');
+                        alert('Pengguna berhasil diperbarui');
                         $('#editUserModal').modal('hide');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
+                        location.reload();
                     } else {
-                        showAlert('Error: ' + response.message, 'error');
+                        alert('Error: ' + response.message);
                     }
                 },
                 error: function() {
-                    showAlert('Terjadi kesalahan saat memperbarui pengguna', 'error');
+                    alert('Terjadi kesalahan saat memperbarui pengguna');
                 }
             });
         });

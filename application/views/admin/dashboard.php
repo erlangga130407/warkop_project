@@ -72,8 +72,8 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="<?= site_url('logout') ?>">
-                    <i class="fas fa-fw fa-utensils"></i>
+                <a class="nav-link" href="<?= site_url('login/logout') ?>">
+                    <i class="fas fa-fw fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
             </li>
@@ -211,24 +211,81 @@
                         </div>
                     </div>
 
+                    <!-- Stock Status Row -->
+                    <div class="row">
+                        <!-- Low Stock Alert -->
+                        <div class="col-xl-4 col-md-6 mb-4">
+                            <div class="card border-left-danger shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                                Stok Rendah</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= isset($low_stock_count) ? $low_stock_count : 0 ?> item</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Out of Stock Alert -->
+                        <div class="col-xl-4 col-md-6 mb-4">
+                            <div class="card border-left-danger shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                                Stok Habis</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= isset($out_of_stock_count) ? $out_of_stock_count : 0 ?> item</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Available Stock -->
+                        <div class="col-xl-4 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Stok Tersedia</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= isset($available_stock_count) ? $available_stock_count : 0 ?> item</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Content Row -->
                     <div class="row">
                         <!-- Recent Orders -->
                         <div class="col-xl-8 col-lg-7">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Recent Orders</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Pesanan Terbaru</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-bordered" width="100%" cellspacing="0">
                                             <thead>
                                                 <tr>
-                                                    <th>Order #</th>
-                                                    <th>Customer</th>
-                                                    <th>Amount</th>
+                                                    <th>No. Pesanan</th>
+                                                    <th>Pelanggan</th>
+                                                    <th>Jumlah</th>
                                                     <th>Status</th>
-                                                    <th>Date</th>
+                                                    <th>Tanggal</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -240,7 +297,7 @@
                                                             <td>Rp <?= number_format($order['total_amount'], 0, ',', '.') ?></td>
                                                             <td>
                                                                 <span class="badge badge-<?= $order['status'] == 'completed' ? 'success' : ($order['status'] == 'processing' ? 'warning' : 'secondary') ?>">
-                                                                    <?= ucfirst($order['status']) ?>
+                                                                    <?= $order['status'] == 'completed' ? 'Selesai' : ($order['status'] == 'processing' ? 'Diproses' : ($order['status'] == 'pending' ? 'Menunggu' : ucfirst($order['status']))) ?>
                                                                 </span>
                                                             </td>
                                                             <td><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></td>
@@ -279,7 +336,68 @@
                                             </div>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <p class="text-center text-muted">No data available</p>
+                                        <p class="text-center text-muted">Tidak ada data</p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Alerts Row -->
+                    <div class="row">
+                        <!-- Low Stock Menus -->
+                        <div class="col-xl-6 col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-warning">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>Stok Rendah (≤10)
+                                    </h6>
+                                    <a href="<?= site_url('admin/menus') ?>" class="btn btn-sm btn-outline-warning">Kelola</a>
+                                </div>
+                                <div class="card-body">
+                                    <?php if (!empty($low_stock_menus)): ?>
+                                        <?php foreach ($low_stock_menus as $menu): ?>
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <div>
+                                                    <h6 class="mb-0"><?= $menu['name'] ?></h6>
+                                                    <small class="text-muted"><?= $menu['category_name'] ?></small>
+                                                </div>
+                                                <div class="text-right">
+                                                    <span class="badge badge-warning"><?= $menu['stock'] ?> stok</span>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <p class="text-center text-muted">Semua stok dalam kondisi baik</p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Out of Stock Menus -->
+                        <div class="col-xl-6 col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-danger">
+                                        <i class="fas fa-times-circle mr-2"></i>Stok Habis
+                                    </h6>
+                                    <a href="<?= site_url('admin/menus') ?>" class="btn btn-sm btn-outline-danger">Kelola</a>
+                                </div>
+                                <div class="card-body">
+                                    <?php if (!empty($out_of_stock_menus)): ?>
+                                        <?php foreach ($out_of_stock_menus as $menu): ?>
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <div>
+                                                    <h6 class="mb-0"><?= $menu['name'] ?></h6>
+                                                    <small class="text-muted"><?= $menu['category_name'] ?></small>
+                                                </div>
+                                                <div class="text-right">
+                                                    <span class="badge badge-danger">Habis</span>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <p class="text-center text-muted">Tidak ada menu yang kehabisan stok</p>
                                     <?php endif; ?>
                                 </div>
                             </div>

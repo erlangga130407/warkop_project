@@ -121,6 +121,16 @@ class Menu_model extends CI_Model
         return $this->db->delete($this->table_menus);
     }
 
+    public function updateStock($id, int $stock)
+    {
+        $this->db->where('id', $id);
+        return $this->db->update($this->table_menus, [
+            'stock' => $stock,
+            'is_available' => $stock > 0 ? 1 : 0,
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
     public function getTopSellingMenus($limit = 5)
     {
         return $this->db->select('m.*, c.name as category_name, COUNT(oi.id) as total_sold')
@@ -155,5 +165,47 @@ class Menu_model extends CI_Model
     public function getCategoryById($id)
     {
         return $this->db->get_where($this->table_categories, ['id' => $id])->row_array();
+    }
+
+    public function getLowStockCount($threshold = 10)
+    {
+        return $this->db->where('stock <=', $threshold)
+                        ->where('stock >', 0)
+                        ->count_all_results($this->table_menus);
+    }
+
+    public function getOutOfStockCount()
+    {
+        return $this->db->where('stock', 0)
+                        ->count_all_results($this->table_menus);
+    }
+
+    public function getAvailableStockCount()
+    {
+        return $this->db->where('stock >', 10)
+                        ->count_all_results($this->table_menus);
+    }
+
+    public function getLowStockMenus($threshold = 10)
+    {
+        return $this->db->select('m.*, c.name as category_name')
+                        ->from($this->table_menus . ' m')
+                        ->join($this->table_categories . ' c', 'c.id = m.category_id', 'left')
+                        ->where('m.stock <=', $threshold)
+                        ->where('m.stock >', 0)
+                        ->order_by('m.stock', 'ASC')
+                        ->get()
+                        ->result_array();
+    }
+
+    public function getOutOfStockMenus()
+    {
+        return $this->db->select('m.*, c.name as category_name')
+                        ->from($this->table_menus . ' m')
+                        ->join($this->table_categories . ' c', 'c.id = m.category_id', 'left')
+                        ->where('m.stock', 0)
+                        ->order_by('m.name', 'ASC')
+                        ->get()
+                        ->result_array();
     }
 }
